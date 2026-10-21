@@ -58,14 +58,15 @@ object EvidenceFusionEngine {
 
         for (det in completedDetectors) {
             val weight = when (det.detectorId) {
-                "srm_noise_residual_v2" -> 0.30
-                "ela_compression_v2" -> 0.25
-                "spectral_dct_v1" -> 0.25
-                "facial_seam_sbi_v1" -> 0.20
+                "univ_fd_probe_v2" -> 0.25
+                "srm_noise_residual_v2" -> 0.25
+                "spectral_dct_v1" -> 0.20
+                "ela_compression_v2" -> 0.15
+                "facial_seam_sbi_v1" -> 0.15
                 "temporal_lipforensics_v1" -> 0.60
                 "aasist_audio_spoof_v1" -> 0.60
                 "syncnet_av_consistency_v1" -> 0.40
-                else -> 0.25
+                else -> 0.20
             }
             weightedScoreSum += det.normalizedScore * weight
             totalWeight += weight

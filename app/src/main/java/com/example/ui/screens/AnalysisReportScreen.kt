@@ -564,66 +564,166 @@ fun AnalysisReportScreen(
             }
         }
 
-        // Complementary Detector Results
+        // Per-Model Score Breakdown Matrix (Explicitly showing each model's score)
         item {
             SectionHeader(
-                title = "Complementary Detector Breakdown",
-                subtitle = "${detectors.size} analytical pipelines executed"
+                title = "Per-Model Score Comparison Matrix",
+                subtitle = "Individual score, verdict, and signal breakdown for each model"
             )
         }
 
-        items(detectors) { det ->
-            val isHigh = det.normalizedScore >= 65
-            val detColor = if (isHigh) ManipulatedRed else AuthenticGreen
-
+        item {
             CyberCard(
-                borderColor = SurfaceBorder,
+                borderColor = CobaltBlue,
                 backgroundColor = SurfaceDark
             ) {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    val fakeCount = detectors.count { it.normalizedScore >= 60 }
+                    val authCount = detectors.count { it.normalizedScore <= 35 }
+                    val totalDets = detectors.size
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = det.detectorName,
-                                color = TextPrimary,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "v${det.version}  •  ${det.executionTimeMs} ms",
-                                color = TextMuted,
-                                fontSize = 10.sp,
-                                fontFamily = FontFamily.Monospace
-                            )
+                        Text(
+                            text = "MODEL CONSENSUS BREAKDOWN",
+                            color = ElectricCyan,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = "$fakeCount of $totalDets Flagged Manipulated",
+                            color = if (fakeCount > totalDets / 2) ManipulatedRed else AuthenticGreen,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Text(
+                        text = "Every model evaluates an independent physical or frequency signal to ensure multi-angle accuracy:",
+                        color = TextSecondary,
+                        fontSize = 11.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    // Model Comparison Rows
+                    for (det in detectors) {
+                        val isHigh = det.normalizedScore >= 65
+                        val isLow = det.normalizedScore <= 35
+                        val detColor = when {
+                            isHigh -> ManipulatedRed
+                            isLow -> AuthenticGreen
+                            else -> InconclusiveAmber
                         }
-                        Column(horizontalAlignment = Alignment.End) {
+                        val detBg = when {
+                            isHigh -> ManipulatedRedBg
+                            isLow -> AuthenticGreenBg
+                            else -> InconclusiveAmberBg
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(SurfaceElevated)
+                                .border(1.dp, SurfaceBorder, RoundedCornerShape(8.dp))
+                                .padding(10.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = det.detectorName,
+                                        color = TextPrimary,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Signal: ${det.detectionSignal}",
+                                        color = ElectricCyan,
+                                        fontSize = 10.sp
+                                    )
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(detBg)
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = det.modelVerdict,
+                                            color = detColor,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "${det.normalizedScore}/100",
+                                        color = detColor,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            // Score Progress Bar
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(Color(0xFF1E283E))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(fraction = (det.normalizedScore / 100f).coerceIn(0.02f, 1f))
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(3.dp))
+                                        .background(detColor)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Weight: ${det.weightPercentage}% of total score",
+                                    color = TextMuted,
+                                    fontSize = 10.sp
+                                )
+                                Text(
+                                    text = "Model Confidence: ${(det.confidence * 100).toInt()}%",
+                                    color = TextSecondary,
+                                    fontSize = 10.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
                             Text(
-                                text = "${det.normalizedScore}/100",
-                                color = detColor,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
-                            )
-                            Text(
-                                text = "Confidence ${(det.confidence * 100).toInt()}%",
+                                text = det.evidenceSummary,
                                 color = TextSecondary,
-                                fontSize = 10.sp
+                                fontSize = 11.sp,
+                                lineHeight = 15.sp
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = det.evidenceSummary,
-                        color = TextSecondary,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp
-                    )
                 }
             }
         }

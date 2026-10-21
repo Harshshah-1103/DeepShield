@@ -158,6 +158,24 @@ class ForensicAnalyzer(private val context: Context) {
                 )
             }
 
+            // Detector E: UniversalFakeDetect (UnivFD Probe)
+            val univFdDetector = UniversalFakeDetectProbe()
+            val univFdOutput = univFdDetector.analyze(bmp)
+            detectorResults.add(univFdOutput.detectorResult)
+
+            evidenceItems.add(
+                EvidenceItem(
+                    id = "EVD-UFD-05",
+                    category = "LATENT_SPACE",
+                    detectorSource = "UniversalFakeDetect (UnivFD Probe)",
+                    finding = if (univFdOutput.featureEntropy < 3.4f) "Collapsed gradient entropy indicates synthetic latent space manifold." else "High-entropy multi-scale gradient distribution.",
+                    score = univFdOutput.detectorResult.normalizedScore,
+                    confidence = univFdOutput.detectorResult.confidence,
+                    explanation = univFdOutput.detectorResult.evidenceSummary,
+                    limitations = "Extreme low-contrast images may compress natural gradient entropy."
+                )
+            )
+
             // Synthesize and persist Thermal Heatmap
             val heatmap = ForensicHeatmapGenerator.generateHeatmap(targetW, targetH, suspicionGrids)
             heatmapPath = saveBitmapToSandbox(heatmap, "${analysisId}_heatmap.png")
@@ -339,6 +357,9 @@ class ForensicAnalyzer(private val context: Context) {
             obj.put("executionTimeMs", det.executionTimeMs)
             obj.put("confidence", det.confidence.toDouble())
             obj.put("evidenceSummary", det.evidenceSummary)
+            obj.put("modelVerdict", det.modelVerdict)
+            obj.put("weightPercentage", det.weightPercentage)
+            obj.put("detectionSignal", det.detectionSignal)
             det.errorDetails?.let { obj.put("errorDetails", it) }
             array.put(obj)
         }

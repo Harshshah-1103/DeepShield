@@ -122,9 +122,15 @@ class ErrorLevelAnalysisDetector(
         val duration = System.currentTimeMillis() - startTime
 
         // Risk estimation based on compression discrepancy
-        // High variance across blocks or extreme localized outliers suggest composite / spliced manipulation
-        val normalizedScore = ((maxDiscrepancy * 70f) + (stdDev.coerceAtMost(10f) * 3f)).toInt().coerceIn(5, 95)
-        val confidence = (0.75f + (stdDev / 40f)).coerceIn(0.60f, 0.95f)
+        val normalizedScore = when {
+            maxDiscrepancy > 0.55f && stdDev > 5.0f -> (80 + (maxDiscrepancy * 15f)).toInt().coerceIn(80, 95)
+            maxDiscrepancy > 0.38f && stdDev > 3.5f -> (55 + (maxDiscrepancy * 20f)).toInt().coerceIn(55, 75)
+            stdDev < 2.5f && maxDiscrepancy < 0.25f -> (8 + (stdDev * 3.5f)).toInt().coerceIn(6, 18)
+            else -> (22 + (maxDiscrepancy * 25f)).toInt().coerceIn(20, 50)
+        }
+        val confidence = (0.80f + (stdDev / 35f)).coerceIn(0.72f, 0.96f)
+
+        val verdict = if (normalizedScore >= 65) "MANIPULATED" else if (normalizedScore <= 35) "AUTHENTIC" else "SUSPICIOUS"
 
         val findingText = when {
             normalizedScore >= 65 -> "High localized compression discrepancy detected. Central region error levels diverge significantly from uniform background compression (Max z-score: ${"%.2f".format(maxDiscrepancy * 3.0f)})."
@@ -142,7 +148,10 @@ class ErrorLevelAnalysisDetector(
             status = "COMPLETED",
             executionTimeMs = duration,
             confidence = confidence,
-            evidenceSummary = findingText
+            evidenceSummary = findingText,
+            modelVerdict = verdict,
+            weightPercentage = 20,
+            detectionSignal = "JPEG Quantization Discrepancy & 16x16 Block Variance"
         )
 
         return ElaOutput(

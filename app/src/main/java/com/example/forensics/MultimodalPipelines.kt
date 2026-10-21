@@ -74,6 +74,8 @@ object VideoForensicPipeline {
 
         val duration = System.currentTimeMillis() - startTime
 
+        val verdict = if (avgRisk >= 65) "MANIPULATED" else if (avgRisk <= 35) "AUTHENTIC" else "SUSPICIOUS"
+
         val result = DetectorResult(
             detectorId = "temporal_lipforensics_v1",
             detectorName = "Temporal Motion & Frame Consistency (LipForensics Baseline)",
@@ -84,7 +86,10 @@ object VideoForensicPipeline {
             status = "COMPLETED",
             executionTimeMs = duration,
             confidence = 0.81f,
-            evidenceSummary = finding
+            evidenceSummary = finding,
+            modelVerdict = verdict,
+            weightPercentage = 60,
+            detectionSignal = "Spatio-Temporal Optical Flow & Facial Landmark Jitter"
         )
 
         return VideoAnalysisOutput(
@@ -160,6 +165,8 @@ object AudioForensicPipeline {
 
         val duration = System.currentTimeMillis() - startTime
 
+        val audioVerdict = if (avgRisk >= 65) "MANIPULATED" else if (avgRisk <= 35) "AUTHENTIC" else "SUSPICIOUS"
+
         val result = DetectorResult(
             detectorId = "aasist_audio_spoof_v1",
             detectorName = "Acoustic Spectral & Voice-Spoofing Detector (AASIST Baseline)",
@@ -170,7 +177,10 @@ object AudioForensicPipeline {
             status = "COMPLETED",
             executionTimeMs = duration,
             confidence = 0.83f,
-            evidenceSummary = finding
+            evidenceSummary = finding,
+            modelVerdict = audioVerdict,
+            weightPercentage = 60,
+            detectionSignal = "Acoustic Vocoder Harmonics & Silence Noise Floor"
         )
 
         return AudioAnalysisOutput(
@@ -213,6 +223,7 @@ object AudioVisualSyncPipeline {
         val alternative = "Note: A synchronization offset alone does not confirm a deepfake. Ordinary video encoding latency, Bluetooth audio delay, or broadcast dubbing can also introduce temporal offsets."
 
         val duration = System.currentTimeMillis() - startTime
+        val syncVerdict = if (risk >= 65) "MANIPULATED" else if (risk <= 35) "AUTHENTIC" else "SUSPICIOUS"
 
         val result = DetectorResult(
             detectorId = "syncnet_av_consistency_v1",
@@ -224,7 +235,10 @@ object AudioVisualSyncPipeline {
             status = "COMPLETED",
             executionTimeMs = duration,
             confidence = 0.72f,
-            evidenceSummary = finding
+            evidenceSummary = finding,
+            modelVerdict = syncVerdict,
+            weightPercentage = 40,
+            detectionSignal = "Lip Aperture vs Formant Acoustic Synchronization Offset"
         )
 
         return SyncOutput(

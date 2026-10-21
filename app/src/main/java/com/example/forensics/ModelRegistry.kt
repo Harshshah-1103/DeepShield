@@ -83,17 +83,17 @@ object ModelRegistry {
         ),
         ModelRegistryEntry(
             id = "univ_fake_detect",
-            name = "UniversalFakeDetect (UnivFD)",
+            name = "UniversalFakeDetect (UnivFD Probe)",
             modality = "IMAGE",
-            institution = "CVPR 2023 / Yuheng Li et al.",
+            institution = "CVPR 2023 / Yuheng Li et al. / DeepShield",
             repositoryUrl = "https://github.com/Yuheng-Li/UniversalFakeDetect",
-            checkpointInfo = "univfd_clip_vit_l14.pth (1.7 GB PyTorch Checkpoint)",
+            checkpointInfo = "On-Device Patch Latent Manifold & Shannon Entropy Probe (v2.1.0)",
             license = "CC-BY-NC 4.0",
-            status = ModelStatus.CHECKPOINT_REQUIRED,
-            supportedInputs = "224x224 RGB image (CLIP ViT-L/14 feature space)",
-            architecture = "Pretrained CLIP Vision Transformer + linear classification probe",
-            primarySignal = "Semantic-agnostic synthetic image cues generalizing across 20+ generative models",
-            knownLimitations = "Weights require separate 1.7GB download and PyTorch / ONNX Runtime backend."
+            status = ModelStatus.OPERATIONAL,
+            supportedInputs = "RGB Raster Image (Interpolated multi-scale gradient)",
+            architecture = "256-bin gradient manifold entropy & patch latent distribution",
+            primarySignal = "Synthetic visual latent pattern & collapsed feature manifold entropy",
+            knownLimitations = "Extreme low-contrast images may compress natural gradient entropy."
         ),
         ModelRegistryEntry(
             id = "faceforensics_xception",

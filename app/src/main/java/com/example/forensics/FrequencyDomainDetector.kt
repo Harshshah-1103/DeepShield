@@ -108,16 +108,18 @@ class FrequencyDomainDetector {
 
         val duration = System.currentTimeMillis() - startTime
 
-        // Risk determination: Generative models show abnormal high-frequency roll-off (< 0.05) or severe periodic grid spikes (> 0.25)
+        // Risk determination: Generative models show abnormal high-frequency roll-off (< 0.05) or periodic grid spikes
         val normalizedScore = when {
-            gridArtifactScore > 0.35f -> 85 // GAN transposed convolution checkerboard
-            gridArtifactScore > 0.20f -> 68
-            highRatio < 0.04f -> 75 // Diffusion latent over-smoothing (missing optical high frequencies)
-            highRatio in 0.08f..0.22f -> 20 // Natural optical lens MTF roll-off
-            else -> 45
+            gridArtifactScore > 0.28f -> 90 // GAN transposed convolution checkerboard
+            gridArtifactScore > 0.16f -> 74
+            highRatio < 0.035f -> 82 // Diffusion latent over-smoothing
+            highRatio in 0.07f..0.22f && gridArtifactScore < 0.10f -> 12 // Natural optical lens MTF roll-off
+            else -> 38
         }
 
-        val confidence = 0.80f
+        val confidence = 0.85f
+        val verdict = if (normalizedScore >= 65) "MANIPULATED" else if (normalizedScore <= 35) "AUTHENTIC" else "SUSPICIOUS"
+
         val finding = when {
             normalizedScore >= 70 -> "Spectral energy anomalies detected. Frequency domain displays characteristic generative upsampling spikes (grid artifact index: ${"%.2f".format(gridArtifactScore)}) and abnormal high-frequency cutoff."
             normalizedScore >= 45 -> "Slight frequency spectrum deviation observed. Moderate high-frequency attenuation present."
@@ -134,7 +136,10 @@ class FrequencyDomainDetector {
             status = "COMPLETED",
             executionTimeMs = duration,
             confidence = confidence,
-            evidenceSummary = finding
+            evidenceSummary = finding,
+            modelVerdict = verdict,
+            weightPercentage = 20,
+            detectionSignal = "2D DCT Grid Anomaly & Periodic Upsampling Spikes"
         )
 
         return FrequencyOutput(

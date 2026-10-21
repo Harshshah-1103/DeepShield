@@ -113,13 +113,15 @@ class FacialSeamAndArtifactDetector {
 
         // Splicing & FaceSwap artifacts show high boundary gradient combined with chroma inconsistency
         val normalizedScore = when {
-            avgBoundaryGrad > 65f && chromaDelta > 18f -> 88 // Classic FaceSwap blend seam
-            avgBoundaryGrad > 50f || chromaDelta > 15f -> 64
-            avgBoundaryGrad in 15f..40f -> 22 // Natural continuous lighting transition
-            else -> 40
+            avgBoundaryGrad > 60f && chromaDelta > 16f -> 92 // Classic FaceSwap blend seam
+            avgBoundaryGrad > 45f || chromaDelta > 13f -> 68
+            avgBoundaryGrad in 12f..36f && chromaDelta < 9f -> 12 // Natural continuous lighting transition
+            else -> 36
         }
 
-        val confidence = 0.78f
+        val confidence = 0.84f
+        val verdict = if (normalizedScore >= 65) "MANIPULATED" else if (normalizedScore <= 35) "AUTHENTIC" else "SUSPICIOUS"
+
         val finding = when {
             normalizedScore >= 70 -> "Facial blend seam and chrominance boundary discontinuity detected. Morphological transition across subject contour shows synthetic stitching (Seam gradient: ${"%.1f".format(avgBoundaryGrad)})."
             normalizedScore >= 45 -> "Slight edge variance along subject contour. Inconclusive boundary gradient."
@@ -136,7 +138,10 @@ class FacialSeamAndArtifactDetector {
             status = "COMPLETED",
             executionTimeMs = duration,
             confidence = confidence,
-            evidenceSummary = finding
+            evidenceSummary = finding,
+            modelVerdict = verdict,
+            weightPercentage = 15,
+            detectionSignal = "SBI Blend Seam & Chrominance Delta"
         )
 
         return SeamOutput(

@@ -23,7 +23,10 @@ data class DetectorResult(
     val executionTimeMs: Long,
     val confidence: Float,
     val evidenceSummary: String,
-    val errorDetails: String? = null
+    val errorDetails: String? = null,
+    val modelVerdict: String = if (normalizedScore >= 65) "MANIPULATED" else if (normalizedScore <= 35) "AUTHENTIC" else "SUSPICIOUS",
+    val weightPercentage: Int = 20,
+    val detectionSignal: String = "Forensic Signal"
 )
 
 data class TechnicalMetadata(

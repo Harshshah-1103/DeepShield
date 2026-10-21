@@ -58,7 +58,10 @@ object ForensicReportParser {
                         executionTimeMs = obj.optLong("executionTimeMs", 0L),
                         confidence = obj.optDouble("confidence", 0.0).toFloat(),
                         evidenceSummary = obj.optString("evidenceSummary", ""),
-                        errorDetails = if (obj.has("errorDetails")) obj.optString("errorDetails") else null
+                        errorDetails = if (obj.has("errorDetails")) obj.optString("errorDetails") else null,
+                        modelVerdict = obj.optString("modelVerdict", if (obj.optInt("normalizedScore", 0) >= 65) "MANIPULATED" else if (obj.optInt("normalizedScore", 0) <= 35) "AUTHENTIC" else "SUSPICIOUS"),
+                        weightPercentage = obj.optInt("weightPercentage", 20),
+                        detectionSignal = obj.optString("detectionSignal", "Forensic Signal")
                     )
                 )
             }

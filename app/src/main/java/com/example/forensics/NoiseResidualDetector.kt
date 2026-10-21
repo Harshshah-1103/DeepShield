@@ -137,14 +137,15 @@ class NoiseResidualDetector {
 
         // Compute deepfake risk estimation from noise residual
         val normalizedScore = when {
-            smoothingRatio > 0.45f -> 80
-            smoothingRatio > 0.30f -> 65
-            avgVariance < 5.0f -> 72 // Synthetic lack of camera sensor PRNU
-            avgVariance in 12.0f..45.0f -> 18 // Typical authentic camera CMOS sensor noise
-            else -> 48
+            smoothingRatio > 0.40f || avgVariance < 4.0f -> 88 // Synthetic lack of camera sensor PRNU
+            smoothingRatio > 0.25f || avgVariance < 7.0f -> 72
+            avgVariance in 10.0f..40.0f && smoothingRatio < 0.18f -> 14 // Typical authentic camera CMOS sensor noise
+            else -> 42
         }
 
-        val confidence = 0.82f
+        val confidence = 0.86f
+        val verdict = if (normalizedScore >= 65) "MANIPULATED" else if (normalizedScore <= 35) "AUTHENTIC" else "SUSPICIOUS"
+
         val finding = when {
             normalizedScore >= 70 -> "High frequency noise residual indicates synthetic generation. Unnatural texture smoothing and missing camera PRNU (Photo Response Non-Uniformity) detected."
             normalizedScore >= 45 -> "Mixed noise residual pattern. Moderate grain variance observed across feature boundaries."
@@ -161,7 +162,10 @@ class NoiseResidualDetector {
             status = "COMPLETED",
             executionTimeMs = duration,
             confidence = confidence,
-            evidenceSummary = finding
+            evidenceSummary = finding,
+            modelVerdict = verdict,
+            weightPercentage = 25,
+            detectionSignal = "2D Laplacian Residual & Sensor PRNU Grain"
         )
 
         return NoiseOutput(

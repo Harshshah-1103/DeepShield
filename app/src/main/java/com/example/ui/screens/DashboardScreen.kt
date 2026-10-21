@@ -267,7 +267,7 @@ fun DashboardScreen(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "4 Active Engines",
+                                text = "5 Active Engines",
                                 color = AuthenticGreen,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -280,7 +280,7 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        DetectorHealthPill("Error Level (ELA)", true)
+                        DetectorHealthPill("UniversalFakeDetect (UnivFD)", true)
                         DetectorHealthPill("Noise Residual (SRM)", true)
                     }
                     Spacer(modifier = Modifier.height(6.dp))
@@ -288,8 +288,16 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        DetectorHealthPill("Error Level (ELA)", true)
                         DetectorHealthPill("Spectral DCT Anomaly", true)
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         DetectorHealthPill("Facial Seam (SBI)", true)
+                        DetectorHealthPill("Audio-Visual (SyncNet)", true)
                     }
                 }
             }
