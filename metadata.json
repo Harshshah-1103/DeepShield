@@ -1,0 +1,6 @@
+{
+  "name": "DeepShield AI",
+  "description": "Explainable Multimodal Deepfake Detection & AI Security Forensic Platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
